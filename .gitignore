@@ -1,0 +1,6 @@
+env/
+data/
+__pycache__/
+finansar.sqlite
+Untitled-1.sql
+main.py
