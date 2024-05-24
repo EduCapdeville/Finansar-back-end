@@ -6,7 +6,7 @@ import sqlite3
 app = FastAPI()
 
 origins = [
-    '*',
+    "*",
 ]
 
 app.add_middleware(
@@ -17,9 +17,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 def connect_to_database():
     conn = sqlite3.connect("finansar.sqlite")
     return conn
+
 
 @app.get("/transactions/{ano}/{mes}")
 def obter_transacoes_por_mes(ano: int, mes: int) -> List[dict]:
@@ -37,13 +39,14 @@ def obter_transacoes_por_mes(ano: int, mes: int) -> List[dict]:
         )
 
     transactions_dict = [
-        {"Data": row[0], "Valor": row[1], "Tipo": row[2], "Descricao": row[3]}
+        {"Localizador": row[0],"Data": row[1], "Valor": row[2], "Tipo": row[3], "Descricao": row[4], "Categoria": row[5]}
         for row in transactions
     ]
     return transactions_dict
 
+
 @app.get("/transactions/gastos/{ano}/{mes}")
-def obter_gastos_por_mes(ano:int, mes:int) -> List[dict]:
+def obter_gastos_por_mes(ano: int, mes: int) -> List[dict]:
     conn = connect_to_database()
     cursor = conn.cursor()
     cursor.execute(
@@ -58,13 +61,14 @@ def obter_gastos_por_mes(ano:int, mes:int) -> List[dict]:
         )
 
     transactions_dict = [
-        {"Data": row[0], "Valor": row[1], "Tipo": row[2], "Descricao": row[3]}
+        {"Localizador": row[0],"Data": row[1], "Valor": row[2], "Tipo": row[3], "Descricao": row[4], "Categoria": row[5]}
         for row in transactions
     ]
     return transactions_dict
 
+
 @app.get("/transactions/recebimentos/{ano}/{mes}")
-def obter_gastos_por_mes(ano:int, mes:int) -> List[dict]:
+def obter_gastos_por_mes(ano: int, mes: int) -> List[dict]:
     conn = connect_to_database()
     cursor = conn.cursor()
     cursor.execute(
@@ -79,7 +83,32 @@ def obter_gastos_por_mes(ano:int, mes:int) -> List[dict]:
         )
 
     transactions_dict = [
-        {"Data": row[0], "Valor": row[1], "Tipo": row[2], "Descricao": row[3]}
+        {"Localizador": row[0],"Data": row[1], "Valor": row[2], "Tipo": row[3], "Descricao": row[4], "Categoria": row[5]}
         for row in transactions
     ]
     return transactions_dict
+
+
+@app.get("/transactions/categories")
+def obter_categorias() -> List[str]:
+    conn = connect_to_database()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT DISTINCT categoria FROM transactions WHERE Descricao IS NOT NULL"
+    )
+    categories = cursor.fetchall()
+    conn.close()
+    return [category[0] for category in categories]
+
+
+@app.put("/transactions/{transacao_id}/{categoria}")
+def atualizar_categoria(transacao_id: int, categoria: str):
+    conn = connect_to_database()
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE transactions SET Categoria = ? WHERE Localizador = ?",
+        (categoria, transacao_id),
+    )
+    conn.commit()
+    conn.close()
+    return {"Categoria atualizada com sucesso"}
