@@ -39,7 +39,14 @@ def obter_transacoes_por_mes(ano: int, mes: int) -> List[dict]:
         )
 
     transactions_dict = [
-        {"Localizador": row[0],"Data": row[1], "Valor": row[2], "Tipo": row[3], "Descricao": row[4], "Categoria": row[5]}
+        {
+            "Localizador": row[0],
+            "Data": row[1],
+            "Valor": row[2],
+            "Tipo": row[3],
+            "Descricao": row[4],
+            "Categoria": row[5],
+        }
         for row in transactions
     ]
     return transactions_dict
@@ -61,7 +68,14 @@ def obter_gastos_por_mes(ano: int, mes: int) -> List[dict]:
         )
 
     transactions_dict = [
-        {"Localizador": row[0],"Data": row[1], "Valor": row[2], "Tipo": row[3], "Descricao": row[4], "Categoria": row[5]}
+        {
+            "Localizador": row[0],
+            "Data": row[1],
+            "Valor": row[2],
+            "Tipo": row[3],
+            "Descricao": row[4],
+            "Categoria": row[5],
+        }
         for row in transactions
     ]
     return transactions_dict
@@ -83,7 +97,14 @@ def obter_gastos_por_mes(ano: int, mes: int) -> List[dict]:
         )
 
     transactions_dict = [
-        {"Localizador": row[0],"Data": row[1], "Valor": row[2], "Tipo": row[3], "Descricao": row[4], "Categoria": row[5]}
+        {
+            "Localizador": row[0],
+            "Data": row[1],
+            "Valor": row[2],
+            "Tipo": row[3],
+            "Descricao": row[4],
+            "Categoria": row[5],
+        }
         for row in transactions
     ]
     return transactions_dict
@@ -99,6 +120,32 @@ def obter_categorias() -> List[str]:
     categories = cursor.fetchall()
     conn.close()
     return [category[0] for category in categories]
+
+
+@app.get("/transactions/summary")
+def obter_gastos_sumarizados() -> List[dict]:
+    conn = connect_to_database()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT STRFTIME('%m-%Y', Data) as mes_ano, SUM(Valor) as total_gastos FROM transactions GROUP BY mes_ano"
+    )
+    summary = cursor.fetchall()
+    conn.close()
+
+    if not summary:
+        raise HTTPException(
+            status_code=404,
+            detail="Nenhum gasto encontrado"
+        )
+
+    summary_dict = [
+        {
+            "mes_ano": row[0],
+            "total_gastos": row[1]
+        }
+        for row in summary
+    ]
+    return summary_dict
 
 
 @app.put("/transactions/{transacao_id}/{categoria}")
